@@ -3,18 +3,29 @@
 from __future__ import annotations
 
 import logging
+import re
 import time
 from collections.abc import Callable, Iterator
 
 from pydantic import BaseModel, Field
 
 from backend import latency_profile, prompts
+from backend.config import PRODUCTION
 from backend.llm import PROVIDERS
 from backend.llm.base import TurnRequest, ms_since
 from backend.memory import Turn, memory
 from backend.tools import registry
 
 log = logging.getLogger("nimbus")
+
+# Anything shaped like a provider API key. A key pasted into the chat by mistake must not reach the
+# LLM, the conversation memory (Redis) or the logs, so it is replaced before anything else happens.
+KEY_SHAPE = re.compile(r"\b(sk-[A-Za-z0-9_-]{16,}|sk_[A-Za-z0-9]{16,}|AIza[0-9A-Za-z_-]{30,})")
+KEY_REDACTED = "[API key removed]"
+
+
+def redact_keys(text: str) -> str:
+    return KEY_SHAPE.sub(KEY_REDACTED, text)
 
 
 class ChatSettings(BaseModel):
@@ -62,6 +73,7 @@ def _action(out: dict) -> str:
 def run_turn(session_id: str, message: str, s: ChatSettings, api_key: str, cart_id: str,
              retrieve: Callable[..., dict]) -> Iterator[dict]:
     t_start = time.perf_counter()
+    message = redact_keys(message)
     s = effective(s)
     fast = s.latency_mode == latency_profile.FAST
     conv = memory.get(session_id)
@@ -136,11 +148,13 @@ def run_turn(session_id: str, message: str, s: ChatSettings, api_key: str, cart_
                                lambda system, prompt: mod.complete(api_key, system, prompt))
 
     usage = {k: sum((r["usage"].get(k) or 0) for r in rounds) for k in ("input_tokens", "output_tokens", "cached_tokens")}
-    # One diagnostic line per turn (local server log): where the LLM time went, round by round.
+    # One diagnostic line per turn: where the LLM time went, round by round. What people said is
+    # logged only on a local dev server, never in production.
     log.warning("turn profile=%s model=%s/%s rounds=%s tools=%s rag=%.0fms first_word=%sms total=%.0fms tokens=%s "
-                "offered=%d | user=%r | reply=%r", s.latency_mode, s.provider, model,
+                "offered=%d%s", s.latency_mode, s.provider, model,
                 [(r["ttft_ms"], r["ms"]) for r in rounds], [a.split(" -> ")[0] for a in actions], rag_ms, first_word,
-                ms_since(t_start), usage, len(tool_names), message[:120], reply[:200])
+                ms_since(t_start), usage, len(tool_names),
+                "" if PRODUCTION else f" | user={message[:120]!r} | reply={reply[:200]!r}")
     yield {
         "type": "done",
         "provider": s.provider, "model": model, "error": error, "knowledge": s.knowledge_mode,

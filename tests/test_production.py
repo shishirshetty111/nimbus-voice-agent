@@ -76,3 +76,34 @@ def test_index_is_read_from_the_shipped_folder_but_built_in_the_writable_one(mon
     (shipped / "bge-small" / "manifest.json").write_text(json.dumps(
         {"chunks_hash": build_index.chunks_hash(), "umap": build_index.UMAP_PARAMS}))
     assert build_index.store_path("bge-small") == shipped / "bge-small"
+
+
+def test_a_pasted_api_key_never_reaches_the_llm_memory_or_logs(monkeypatch, tmp_path, caplog):
+    import backend.tools.registry as reg
+    from backend import chat
+    from backend.llm import PROVIDERS
+
+    seen = []
+
+    class Echo:
+        MODELS = {"fake-1": {"label": "Fake"}}
+        DEFAULT = LITE = "fake-1"
+
+        def run(self, r):
+            seen.append(r.user)
+            yield {"type": "delta", "text": "Noted."}
+
+        def complete(self, *a):
+            return ""
+
+    monkeypatch.setitem(PROVIDERS, "fake", {"label": "Fake", "module": Echo()})
+    monkeypatch.setattr(reg, "store", CartStore(tmp_path / "c.json"))
+    monkeypatch.setattr(chat, "memory", Memory())
+    monkeypatch.setattr(chat, "PRODUCTION", True)
+    key = "sk-proj-" + "A1b2C3d4E5f6G7h8I9j0" * 2
+    with caplog.at_level("WARNING", logger="nimbus"):
+        list(chat.run_turn("sess-key-1", f"my key is {key}", chat.ChatSettings(provider="fake", tools_enabled=[]),
+                           "k", "cart-key-1", lambda q, k=5, rerank=False: {"hits": [], "timings_ms": {"total": 0}}))
+    assert key not in seen[0] and chat.KEY_REDACTED in seen[0]
+    assert all(key not in t.user for t in chat.memory.get("sess-key-1").turns)
+    assert key not in caplog.text and "my key is" not in caplog.text   # no user text in production logs

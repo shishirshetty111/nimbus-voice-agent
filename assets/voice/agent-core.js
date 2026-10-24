@@ -6,7 +6,7 @@
 
 import { api, apiStream } from "./api.js";
 import { getCartId } from "./cart-id.js";
-import { loadKeys } from "./keys.js";
+import { KEY_IN_CHAT, loadKeys, looksLikeKey } from "./keys.js";
 import { fromTextTurn, fromVoiceTurn, storeTurn } from "./latency-model.js";
 import { VoiceClient } from "./voice-client.js";
 
@@ -160,6 +160,7 @@ export class NimbusAgent {
 
   // Typed message: spoken back if voice is on, otherwise a text reply.
   async sendText(text) {
+    if (looksLikeKey(text)) return this.v.onError?.(KEY_IN_CHAT);
     this.v.onUser?.(text);
     this.v.onAgentStart?.();
     if (this.voiceOn) return this.voice.sendText(text);

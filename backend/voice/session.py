@@ -31,7 +31,7 @@ from concurrent.futures import ThreadPoolExecutor
 from fastapi import WebSocket, WebSocketDisconnect
 
 from backend import chat
-from backend.config import api_key
+from backend.config import PRODUCTION, api_key
 from backend.llm.base import error_message
 from backend.voice import asr, tts
 from backend.voice.audio import TTS_RATE
@@ -369,6 +369,7 @@ class VoiceSession:
         self.turn_task = asyncio.create_task(self.turn(self.turn_id, text, asr_ms, endpoint_ms, t0))
 
     async def turn(self, tid: int, text: str, asr_ms: float, endpoint_ms: float, t0: float) -> None:
+        text = chat.redact_keys(text)  # a typed message may hold a pasted key; it must not be stored
         s, cs = self.settings, self.chat_settings
         llm_key, tts_provider = self.key(cs.provider), s["tts_provider"]
         tts_key = self.key(tts_provider)
@@ -539,7 +540,8 @@ class VoiceSession:
         log.warning("voice turn=%d profile=%s mode=%s asr=%s/%.0fms endpoint=%.0fms tts_wait=%sms tts_ttfb=%sms "
                     "first_audio=%sms sentences=%s", tid, cs.latency_mode, "streaming" if streaming else "batch",
                     s["asr_provider"], asr_ms, endpoint_ms, rel("tts_start"), dur("tts_start", "tts_first_byte"),
-                    round((first_audio_at - t0) * 1000) if first_audio_at else None, [x[0][:60] for x in segments])
+                    round((first_audio_at - t0) * 1000) if first_audio_at else None,
+                    len(segments) if PRODUCTION else [x[0][:60] for x in segments])  # no speech text in prod logs
         await self.send({
             "type": "turn_done", "turn": tid, "mode": "streaming" if streaming else "batch", "transcript": text, "knowledge": cs.knowledge_mode,
             "profile": cs.latency_mode,

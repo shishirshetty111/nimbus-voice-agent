@@ -104,7 +104,7 @@ export function mountWidget() {
     panel.classList.toggle("open", open);
     fab.setAttribute("aria-expanded", String(open));
     if (open && !ready) ready = start();
-    if (open) setTimeout(() => $("input").focus(), 50);
+    if (open && !keysOpen) setTimeout(() => $(".vp-controls input").focus(), 50);
   }
 
   fab.addEventListener("click", () => toggle());
@@ -123,12 +123,15 @@ export function mountWidget() {
     await ready;
     agent?.toggleVoice();
   });
-  $("form").addEventListener("submit", async (e) => {
+  // Always address the chat form and its input by class: the panel also holds the key form, whose
+  // inputs come first (a bare "form"/"input" lookup once sent a pasted API key as a chat message).
+  $(".vp-controls").addEventListener("submit", async (e) => {
     e.preventDefault();
     await ready;
-    const text = $("input").value.trim();
+    const input = $(".vp-controls input");
+    const text = input.value.trim();
     if (!text || !agent?.preset?.canText) return;
-    $("input").value = "";
+    input.value = "";
     agent.sendText(text);
   });
 }

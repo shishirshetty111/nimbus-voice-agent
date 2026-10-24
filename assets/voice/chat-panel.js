@@ -3,7 +3,7 @@
 
 import { el, escapeHtml } from "../app.js";
 import { api, apiStream } from "./api.js";
-import { loadKeys } from "./keys.js";
+import { KEY_IN_CHAT, loadKeys, looksLikeKey } from "./keys.js";
 import { getSettings, setSettings } from "./settings.js";
 
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -249,6 +249,11 @@ async function send() {
   const input = $("#c-input");
   const message = input.value.trim();
   if (!message) return;
+  if (looksLikeKey(message)) {
+    input.value = "";
+    agentTurn().note(el("div", { class: "note err chat-err" }, KEY_IN_CHAT));
+    return;
+  }
   input.value = "";
   const btn = $("#c-send");
   btn.disabled = true;

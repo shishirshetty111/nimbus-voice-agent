@@ -35,6 +35,12 @@ function saveKeys(keys) {
 let memoryKeys = null; // fallback when localStorage is unavailable
 const currentKeys = () => memoryKeys || loadKeys();
 
+// True when a chat message contains something shaped like a provider API key. Such a message is
+// never sent: it would reach the LLM, the conversation memory and the chat log.
+const KEY_SHAPE = /\b(sk-[A-Za-z0-9_-]{16,}|sk_[A-Za-z0-9]{16,}|AIza[0-9A-Za-z_-]{30,})/;
+export const looksLikeKey = (text) => KEY_SHAPE.test(text || "");
+export const KEY_IN_CHAT = "That looks like an API key, so it was not sent. Paste keys in the Keys panel instead.";
+
 // Save (or, with an empty value, remove) one provider's key.
 export function setKey(provider, value) {
   const all = { ...currentKeys(), [provider]: (value || "").trim() };
