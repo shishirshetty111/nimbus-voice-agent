@@ -47,13 +47,20 @@ export class VoiceClient {
 
   // ------------------------------------------------------------------ lifecycle
 
+  // The client counts as on from the first moment ("connecting"), not only once the socket is ready:
+  // a cold server can take seconds, and a second tap meanwhile must stop this client, not start
+  // another one (several live clients each answered, so the user heard 3-4 voices at once).
+  // A stop() during start shows up as state "off" after each await, and start() bails out.
   async start(startMsg, cfg) {
     Object.assign(this.cfg, cfg);
+    this.setState("connecting");
     this.ctx = new AudioContext();
     await this.ctx.audioWorklet.addModule(new URL("./worklets.js", import.meta.url));
+    if (this.state === "off") return this.stop();
     this.stream = await navigator.mediaDevices.getUserMedia({
       audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 },
     });
+    if (this.state === "off") return this.stop();
     const src = this.ctx.createMediaStreamSource(this.stream);
     this.mic = new AudioWorkletNode(this.ctx, "mic-capture");
     this.mic.port.onmessage = ({ data }) => this.onMicSamples(data);
@@ -71,6 +78,7 @@ export class VoiceClient {
     this.floorDb = -60;
     this.preroll = [];
     await this.connect(startMsg);
+    if (this.state === "off") return this.stop();
     if (this.cfg.asr_provider === "browser") this.startBrowserAsr();
     this.setState("listening");
   }
@@ -120,9 +128,11 @@ export class VoiceClient {
       ws.onerror = () => (clearTimeout(timer), reject(new Error("Voice connection failed. Check your connection and try again.")));
       ws.onclose = () => {
         clearTimeout(timer);
+        reject(new Error("Voice connection closed.")); // no-op once ready
         if (this.ws !== ws) return; // an older socket we already replaced
         this.ws = null;
-        if (this.state !== "off" && !this.reconnecting) this.reconnect();
+        // A socket that fails while starting is start()'s error to report, not a reason to reconnect.
+        if (this.state !== "off" && this.state !== "connecting" && !this.reconnecting) this.reconnect();
       };
       this.ws = ws;
     });
@@ -152,6 +162,7 @@ export class VoiceClient {
       await this.connect(this.startMsg); // replaces this.ws; the old socket's onclose then ignores it
       old?.close();
     } catch {
+      if (old?.readyState === 1 && this.state !== "off") this.ws = old; // keep using the old socket
       this.refreshTimer = setTimeout(() => this.refresh(), 5000);
     }
   }

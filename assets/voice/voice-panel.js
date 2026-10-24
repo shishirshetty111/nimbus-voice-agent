@@ -12,6 +12,7 @@ import { VoiceClient } from "./voice-client.js";
 const $ = (sel, root = document) => root.querySelector(sel);
 const STATES = {
   off: ["", "Click the mic to start talking"],
+  connecting: ["dot-thinking", "Connecting…"],
   listening: ["dot-listening", "Listening…"],
   hearing: ["dot-listening", "Hearing you…"],
   thinking: ["dot-thinking", "Thinking…"],
@@ -163,13 +164,14 @@ async function toggle() {
     onTurnDone: paintTurn,
     onError: (msg) => ($("#v-turn").innerHTML = `<div class="note err">${escapeHtml(msg)}</div>`),
   });
+  const c = client;
   try {
     $("#v-turn").innerHTML = "";
-    await client.start(startMsg(), vs());
+    await c.start(startMsg(), vs());
   } catch (err) {
-    $("#v-turn").innerHTML = `<div class="note err">${escapeHtml(err.message || String(err))}</div>`;
-    await client.stop();
-    client = null;
+    if (c.state !== "off") $("#v-turn").innerHTML = `<div class="note err">${escapeHtml(err.message || String(err))}</div>`;
+    await c.stop();
+    if (client === c) client = null;
   }
 }
 

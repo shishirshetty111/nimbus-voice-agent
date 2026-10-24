@@ -127,13 +127,15 @@ export class NimbusAgent {
         this.v.onTurn?.(rec, t);
       },
     });
+    const voice = this.voice;
     try {
-      await this.voice.start(this.startMsg(), this.preset.voice);
-      return true;
+      await voice.start(this.startMsg(), this.preset.voice);
+      return voice.state !== "off";
     } catch (err) {
-      this.v.onError?.(err.message || String(err));
-      await this.voice.stop();
-      this.voice = null;
+      const stoppedByUser = voice.state === "off"; // tapped again while connecting
+      await voice.stop();
+      if (this.voice === voice) this.voice = null;
+      if (!stoppedByUser) this.v.onError?.(err.message || String(err));
       return false;
     }
   }

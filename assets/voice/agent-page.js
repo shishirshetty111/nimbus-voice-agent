@@ -10,6 +10,7 @@ import { STAGES, fmt } from "./latency-model.js";
 const $ = (sel, root = document) => root.querySelector(sel);
 const STATE = {
   off: ["", "Tap the mic and start talking"],
+  connecting: ["dot-thinking", "Connecting…"],
   listening: ["dot-listening", "Listening…"],
   hearing: ["dot-listening", "Hearing you…"],
   thinking: ["dot-thinking", "Thinking…"],

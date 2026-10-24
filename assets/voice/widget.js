@@ -10,6 +10,7 @@ import { PROVIDERS, loadKeys, setKey } from "./keys.js";
 
 const STATE = {
   off: "Type, or tap the mic to talk",
+  connecting: "Connecting…",
   listening: "Listening…",
   hearing: "Hearing you…",
   thinking: "Thinking…",
