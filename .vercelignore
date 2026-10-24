@@ -13,3 +13,8 @@ docs/
 requirements-dev.txt
 .cache/fastembed/models--jinaai--jina-reranker-v1-tiny-en/
 .cache/fastembed/models--jinaai--jina-reranker-v1-turbo-en/
+
+# Local AI-agent tooling installed by the Vercel CLI
+.agents/
+.claude/
+skills-lock.json
