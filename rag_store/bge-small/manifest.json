@@ -1,0 +1,18 @@
+{
+  "embedder": "bge-small",
+  "model": "BAAI/bge-small-en-v1.5",
+  "dim": 384,
+  "count": 282,
+  "chunks_hash": "215bb9b8342afbb2",
+  "index": "faiss.IndexFlatIP (exact cosine on normalized vectors)",
+  "umap": {
+    "n_neighbors": 50,
+    "min_dist": 0.5,
+    "metric": "cosine",
+    "random_state": 42
+  },
+  "build_seconds": {
+    "embed": 35.61,
+    "umap": 33.18
+  }
+}

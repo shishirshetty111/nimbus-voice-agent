@@ -1,5 +1,10 @@
 // Core: catalog loading, shared layout (nav/footer), icons, and small helpers.
 
+// The cart module's URL carries a version so browsers never reuse a stale cached copy from before
+// it became server-backed. Bump it when cart.js's exports change. Every importer must use this
+// same URL, or the page would load two separate cart modules.
+export const CART_MODULE = new URL("./cart.js?v=2", import.meta.url).href;
+
 // Resolve assets/data relative to THIS module, so the site works no matter
 // which subpath it is mounted at (root, a nested folder, Live Preview, etc.).
 const asset = (rel) => new URL(rel, import.meta.url).href;
@@ -9,6 +14,9 @@ const NAV_LINKS = [
   { href: "pricing.html", label: "Pricing" },
   { href: "support.html", label: "Support" },
   { href: "about.html", label: "Company" },
+  { href: "agent.html", label: "Assistant" },
+  { href: "rag.html", label: "RAG Lab" },
+  { href: "playground.html", label: "Playground" },
 ];
 
 // ---- Inline SVG icon set (stroke = currentColor) ----
@@ -199,7 +207,7 @@ export async function bootstrap(active, renderFn) {
     mountFooter(catalog);
     observeReveals();
     // Client-side cart (localStorage); loaded lazily so browsing never blocks on it.
-    import("./cart.js").then((m) => m.mountCart()).catch(() => {});
+    import(CART_MODULE).then((m) => m.mountCart()).catch(() => {});
   } catch (err) {
     console.error(err);
     const main = document.querySelector("#app") || document.body;

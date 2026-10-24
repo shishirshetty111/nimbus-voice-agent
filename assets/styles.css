@@ -510,8 +510,10 @@ p { margin: 0 0 1rem; }
 .cart-remove svg { width: 15px; height: 15px; }
 .cart-remove:hover { color: #ef4444; }
 .cart-foot { padding: 1.2rem 1.4rem; border-top: 1px solid var(--line); }
-.cart-total { display: flex; justify-content: space-between; font-size: 1.1rem; margin-bottom: .9rem; }
+.cart-total { display: flex; justify-content: space-between; font-size: 1.1rem; margin-bottom: .3rem; }
 .cart-total strong { font-family: var(--display); }
+.cart-due { display: flex; justify-content: space-between; font-size: .88rem; color: var(--muted); margin-bottom: .9rem; }
+.cart-count[hidden] { display: none; }
 .cart-note { font-size: .76rem; color: var(--muted); text-align: center; margin: .6rem 0 0; }
 .cart-done { display: flex; gap: .7rem; align-items: center; background: rgba(22,163,74,.08); border: 1px solid rgba(22,163,74,.25); border-radius: 12px; padding: 1rem; margin: 1rem 0; }
 .cart-done svg { width: 22px; height: 22px; color: var(--green); flex: none; }

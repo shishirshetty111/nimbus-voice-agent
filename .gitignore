@@ -12,3 +12,16 @@ Thumbs.db
 # Dependencies / build output (none needed for this static site)
 node_modules/
 __pycache__/
+
+# Python virtual env
+.venv/
+
+.vercel
+.env*
+
+# Downloaded ONNX models (fetched automatically on first run)
+.cache/
+
+# Runtime state (carts, orders)
+.runtime/
+.pytest_cache/

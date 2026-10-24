@@ -1,0 +1,9 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "main.py": {
+      "maxDuration": 300,
+      "excludeFiles": "{tests/**,scraper/**,.runtime/**,.pytest_cache/**,**/__pycache__/**,.cache/fastembed/models--jinaai--*/**,docs/**}"
+    }
+  }
+}

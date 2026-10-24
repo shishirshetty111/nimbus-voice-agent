@@ -1,11 +1,11 @@
 // Page renderers. Each builds DOM from the catalog into #app.
-import { el, tone, initials, fromPrice, param, escapeHtml, icon, catIconName } from "./app.js";
+import { el, tone, initials, fromPrice, param, escapeHtml, icon, catIconName, CART_MODULE } from "./app.js";
 
 const app = () => document.querySelector("#app");
 
 // Add-to-cart (client-side store; loaded on demand).
 function addToCartUI(productName, tier) {
-  import("./cart.js").then((m) => m.addToCart(productName, tier || null, 1)).catch((e) => console.error(e));
+  import(CART_MODULE).then((m) => m.addToCart(productName, tier || null, 1)).catch((e) => console.error(e));
 }
 
 // Map a category id to a tone index so a product's tile colour matches its family.
@@ -65,6 +65,7 @@ export function renderHome(catalog) {
             )}</p>
             <div class="hero-actions">
               <a href="products.html" class="btn btn-primary">Explore products ${icon("arrow")}</a>
+              <a href="agent.html" class="btn btn-ghost" data-open-assistant>${icon("mic")} Talk to our voice agent</a>
               <a href="pricing.html" class="btn btn-ghost">See pricing</a>
             </div>
             <div class="hero-trust"><span class="pill"><span class="dot"></span>${escapeHtml(

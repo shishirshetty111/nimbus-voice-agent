@@ -10,14 +10,16 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
   <link rel="apple-touch-icon" href="assets/favicon.svg" />
-  <link rel="stylesheet" href="assets/styles.css" />
+  <link rel="stylesheet" href="assets/styles.css?v=2" />
 </head>
 <body>
   <main id="app"></main>
   <script type="module">
     import { bootstrap } from "./assets/app.js";
-    import { renderHome } from "./assets/render.js";
+    import { renderHome } from "./assets/render.js?v=2";
     bootstrap("", renderHome);
+    // "Talk to Nimbus" chat box (loads its code only when opened).
+    import("./assets/voice/widget.js").then((m) => m.mountWidget()).catch(() => {});
   </script>
 </body>
 </html>

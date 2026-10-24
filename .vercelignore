@@ -1,0 +1,15 @@
+# Uploaded to Vercel: the site (html, assets/, data/), the backend, knowledge/, the prebuilt
+# rag_store/ and the two ONNX models the backend uses (.cache/fastembed). Everything below is not.
+.venv/
+.vscode/
+.vercel/
+.env*
+.runtime/
+.pytest_cache/
+**/__pycache__/
+tests/
+scraper/
+docs/
+requirements-dev.txt
+.cache/fastembed/models--jinaai--jina-reranker-v1-tiny-en/
+.cache/fastembed/models--jinaai--jina-reranker-v1-turbo-en/

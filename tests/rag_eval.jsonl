@@ -1,0 +1,30 @@
+{"q": "how do refunds work", "relevant": ["policy:refund", "*:faq:3"]}
+{"q": "can I get my money back if I don't like it", "relevant": ["policy:refund", "*:faq:3"]}
+{"q": "is there a free trial and do I need a credit card", "relevant": ["policy:freeTrial", "*:faq:2"]}
+{"q": "what happens to my data after I cancel", "relevant": ["policy:cancellation"]}
+{"q": "what uptime do you guarantee", "relevant": ["policy:sla"]}
+{"q": "are you SOC 2 compliant", "relevant": ["policy:security"]}
+{"q": "can my data be stored in the EU", "relevant": ["policy:dataResidency"]}
+{"q": "do enterprise customers get phone support", "relevant": ["policy:support"]}
+{"q": "what payment methods do you accept", "relevant": ["policy:billing"]}
+{"q": "how much discount do I get for paying yearly", "relevant": ["policy:billing"]}
+{"q": "where is Nimbus headquartered", "relevant": ["company:profile"]}
+{"q": "what is the sales email address", "relevant": ["company:contact"]}
+{"q": "which products are in the HR family", "relevant": ["category:hr-people"]}
+{"q": "what security products do you sell", "relevant": ["category:it-security"]}
+{"q": "how much is the CRM professional plan", "relevant": ["nimbus-crm:tier:professional", "nimbus-crm:faq:1"]}
+{"q": "price of Nimbus Leads starter", "relevant": ["nimbus-leads:tier:starter", "nimbus-leads:faq:1"]}
+{"q": "what do I get in the free plan of Nimbus Desk", "relevant": ["nimbus-desk:tier:free"]}
+{"q": "how many contacts does CRM starter allow", "relevant": ["nimbus-crm:tier:starter"]}
+{"q": "can I import my contacts into the CRM", "relevant": ["nimbus-crm:faq:4"]}
+{"q": "does payroll file taxes automatically", "relevant": ["nimbus-payroll:faq:4", "nimbus-payroll:features"]}
+{"q": "what if I forget my master password in the password manager", "relevant": ["nimbus-vault:faq:4"]}
+{"q": "can I change the colors of the live chat widget", "relevant": ["nimbus-chat:faq:4"]}
+{"q": "can I bring Word files into Nimbus Docs", "relevant": ["nimbus-docs:faq:4"]}
+{"q": "which tool should I use for kanban boards", "relevant": ["nimbus-boards:overview", "nimbus-boards:features", "category:projects"]}
+{"q": "I need no-code ETL to sync data", "relevant": ["nimbus-datapipe:overview", "nimbus-datapipe:features"]}
+{"q": "which product handles employee expense reimbursements", "relevant": ["nimbus-expense:overview", "nimbus-expense:features"]}
+{"q": "what add-ons does Nimbus Leads have", "relevant": ["nimbus-leads:addons"]}
+{"q": "how much does a dedicated IP cost for email campaigns", "relevant": ["nimbus-campaigns:addons"]}
+{"q": "what integrations does Nimbus CRM support", "relevant": ["nimbus-crm:features"]}
+{"q": "does Nimbus SSO support single sign-on for enterprise", "relevant": ["nimbus-sso:overview", "nimbus-sso:features", "nimbus-sso:tier:enterprise"]}
