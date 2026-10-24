@@ -157,8 +157,13 @@ class Retriever:
             pts = self.coords[dim][neighbor_idx or [0]]
             return [float(v) for v in pts.mean(axis=0)], "neighbor centroid"
 
-    def warm(self) -> None:
-        """Pay model-load and numba-compile costs up front, not on the first user query."""
-        r = self.retrieve("warm up", k=3, candidates=5, rerank=True)
-        for d in (2, 3):
-            self.project(r["query_vec"], d, [h["idx"] for h in r["hits"]])
+    def warm(self, full: bool = True) -> None:
+        """Pay model-load costs up front, not on the first user query.
+
+        full=False (production) loads only the embedding model, about a second. The reranker and the
+        UMAP projections (numba compiles them for ~20 s, holding the CPU and Python's lock, which stalls
+        every voice session on the instance) are only needed by the RAG Lab, so they load on first use."""
+        r = self.retrieve("warm up", k=3, candidates=5, rerank=full)
+        if full:
+            for d in (2, 3):
+                self.project(r["query_vec"], d, [h["idx"] for h in r["hits"]])

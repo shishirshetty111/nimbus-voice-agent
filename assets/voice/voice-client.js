@@ -31,6 +31,7 @@ const BARGE_MARGIN_DB = 22;     // stricter than START (15 dB): echo of the agen
 // Adaptive end-of-speech wait (ms). 300 ms cut people off at natural mid-sentence pauses, so the
 // shortest wait is 500 ms, used only when the live transcript already ends like a finished sentence.
 const FAST_ENDPOINT = { done: 500, unknown: 700, trailing: 1000 };
+const REFRESH_AFTER_MS = 4 * 60 * 1000; // swap voice sockets before Vercel's 5-minute limit
 const TRAILING = /\b(and|or|but|so|because|um+|uh+|er+|like|the|a|an|to|of|for|with|in|on|my|your|is|are|if|that|then)\s*$/i;
 const FAST_BUFFER = { start: 40, step: 40, max: 200, min: 40 };   // adaptive playback buffer (ms)
 const FILLER_AFTER_MS = 700;                                        // play a filler if nothing has arrived by then
@@ -75,6 +76,7 @@ export class VoiceClient {
   }
 
   async stop() {
+    clearTimeout(this.refreshTimer);
     this.setState("off");
     try { this.recog?.abort(); } catch {}
     this.recog = null;
@@ -112,7 +114,7 @@ export class VoiceClient {
       ws.onmessage = (m) => {
         if (typeof m.data !== "string") return this.onAudio(m.data);
         const ev = JSON.parse(m.data);
-        if (ev.type === "ready") (clearTimeout(timer), resolve());
+        if (ev.type === "ready") (clearTimeout(timer), this.scheduleRefresh(), resolve());
         this.onServerEvent(ev);
       };
       ws.onerror = () => (clearTimeout(timer), reject(new Error("Voice connection failed. Check your connection and try again.")));
@@ -124,6 +126,34 @@ export class VoiceClient {
       };
       this.ws = ws;
     });
+  }
+
+  // Audio frames are dropped while a socket is (re)connecting rather than throwing.
+  sendAudio(buf) {
+    if (this.ws?.readyState === 1) this.ws.send(buf);
+  }
+
+  // Vercel ends a voice socket after 5 minutes, and the next one may start a cold server instance
+  // (a few seconds). Swap to a fresh socket a little early, and only while the agent is idle and
+  // listening, so that wait never lands in the middle of a turn.
+  scheduleRefresh() {
+    clearTimeout(this.refreshTimer);
+    this.refreshTimer = setTimeout(() => this.refresh(), REFRESH_AFTER_MS);
+  }
+
+  async refresh() {
+    if (this.state === "off" || this.reconnecting) return;
+    if (this.state !== "listening") {
+      this.refreshTimer = setTimeout(() => this.refresh(), 2000); // mid-turn: try again shortly
+      return;
+    }
+    const old = this.ws;
+    try {
+      await this.connect(this.startMsg); // replaces this.ws; the old socket's onclose then ignores it
+      old?.close();
+    } catch {
+      this.refreshTimer = setTimeout(() => this.refresh(), 5000);
+    }
   }
 
   // The server may close a long-lived socket (on Vercel, when the function reaches its maximum
@@ -200,7 +230,7 @@ export class VoiceClient {
       return;
     }
     // hearing
-    if (this.cfg.asr_provider !== "browser") this.ws?.send(pcm.buffer);
+    if (this.cfg.asr_provider !== "browser") this.sendAudio(pcm.buffer);
     const silent = db < Math.max(this.floorDb + SILENCE_MARGIN_DB, this.speechDb - SPEECH_DROP_DB);
     if (!silent) {
       this.lastVoice = now;
@@ -230,7 +260,7 @@ export class VoiceClient {
     this.lastPartial = "";
     if (this.cfg.asr_provider !== "browser") {
       this.send({ type: "speech_start" });
-      this.preroll.forEach((p) => this.ws?.send(p.buffer));
+      this.preroll.forEach((p) => this.sendAudio(p.buffer));
     }
     this.preroll = [];
     this.browserText = { final: "", interim: "" };

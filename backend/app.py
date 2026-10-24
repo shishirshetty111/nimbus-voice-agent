@@ -72,7 +72,7 @@ def request_key(request: Request, provider: str) -> str | None:
 def _warm_up():
     try:
         load_context()
-        get_retriever(DEFAULT_EMBEDDER).warm()
+        get_retriever(DEFAULT_EMBEDDER).warm(full=not PRODUCTION)
         _warm.set()
         log.warning("RAG ready: %s", DEFAULT_EMBEDDER)
     except Exception:  # keep serving the site even if warm-up fails

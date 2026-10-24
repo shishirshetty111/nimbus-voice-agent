@@ -223,6 +223,10 @@ The app deploys to [Vercel](https://vercel.com) as one Python function.
 3. Add the environment variable `VERCEL_SUPPORT_LARGE_FUNCTIONS=1`. The Python libraries plus the embedding model come to about 750 MB, over the standard 500 MB limit.
 4. Deploy. Visitors bring their own keys, so there are no AI keys to configure.
 
+Two settings matter for speed on Vercel:
+- `pyproject.toml` turns on `cdn = true`, so scripts, styles and data are served from Vercel's CDN instead of the Python function. Without it, every file of a page load is a function call, and one page load can start several cold server copies at once. When `pyproject.toml` exists Vercel installs dependencies from it, so its list must match `requirements.txt`.
+- In production the server warms up only the small embedding model (about 3 seconds from a cold start). The RAG Lab's UMAP map is compiled the first time someone opens it, because compiling it takes about 20 seconds and freezes everything else on that server copy while it runs.
+
 Without Redis it still works on a single server; carts and memory are then kept on that server's disk and in its memory.
 
 ---
@@ -276,7 +280,7 @@ The 80 tests cover the knowledge scraper, search quality, every tool, the chat l
 - **English only.** Speech recognition and replies are fixed to English.
 - **Latency is about 4 seconds on a typical turn, not 2.** The remaining time is mostly the LLM and speech services themselves. Ideas still to try are listed in the latency plan.
 - **Demo checkout.** Orders are recorded, but no payment is taken and nothing is delivered.
-- **Voice connections reconnect every few minutes** on Vercel's free plan. It's automatic and keeps your conversation, but a reply in progress at that moment can be lost.
+- **Voice connections are replaced every few minutes** because Vercel limits how long one connection may stay open. The browser swaps to a fresh connection after four minutes, but only while the agent is idle and listening, so you normally never notice.
 - **No phone line yet.** Calling the agent by phone is planned but not built.
 
 ---
